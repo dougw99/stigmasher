@@ -20,12 +20,12 @@
 
 
 # Additional rules
-V-206584: if disableLocalAuth is enabled, then this is NAF otherwise this is open.
-V-206580: if disableLocalAuth is enabled, then this is NAF otherwise this is open
-V-206554: if disableLocalAuth is enabled, then this is NAF otherwise this is open
-V-206523: if diagnostic logging is enabled, then this is NAF otherwise this is open
-V-263609: if disableLocalAuth is enabled, then this is NAF otherwise this is open
-V-206595: if diagnostic logging is enabled, then this is NAF otherwise this is open
-V-206581: if disableLocalAuth is enabled, then this is NAF otherwise this is open
-V-206579: if disableLocalAuth is enabled, then this is NAF otherwise this is open
-V-206519: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206584: if disableLocalAuth is enabled, then this is NAF otherwise this is open.
+- V-206580: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206554: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206523: if diagnostic logging is enabled, then this is NAF otherwise this is open
+- V-263609: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206595: if diagnostic logging is enabled, then this is NAF otherwise this is open
+- V-206581: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206579: if disableLocalAuth is enabled, then this is NAF otherwise this is open
+- V-206519: if disableLocalAuth is enabled, then this is NAF otherwise this is open
