@@ -1,123 +1,127 @@
-# Cosmos DB STIG Checklist Automation (stigmasher)
+# Azure App Service STIG Checklist Automation (stigmasher)
 
-AI-assisted, repeatable STIG compliance assessment for Azure Cosmos DB, based on the
-Database SRG V4R6 (142 rules).
+AI-assisted, repeatable STIG compliance assessment for Azure App Service
+(web/function apps), based on the **Application Server SRG** (137 rules),
+structured as an ICM pipeline.
 
 ## Overview
 
-This project turns a manual STIG checklist effort into a deterministic pipeline:
+The pipeline assesses one app per run, always the same way:
 
-1. **Collect** evidence from Azure via the `az` CLI (no secrets).
-2. **Evaluate** the evidence with a fixed, deterministic rules map.
-3. **Review** — open the report, resolve any `not_reviewed` items, and encode
-   those decisions back into the rules map so the next run is repeatable.
+1. **Collect** evidence from Azure via the `az` CLI (secret-free)
+   → `snapshot\azure_snapshot.json`.
+2. **Evaluate** the snapshot against `rules\rules.md` (8 key events +
+   decision tables distilled from the checklist's `check_content`)
+   → stage 02 first-pass statuses.
+3. **Review** — the human gate (stage 03) resolves the org/tenant rules in
+   batched questions; decisions are recorded verbatim in `03_review\output`
+   and organization-level ones in `_config\overrides.md`.
+4. **Map** (stage 04) merges evaluations + decisions into one machine-readable
+   `rules-mapping.json`; **Compose** (stage 05) applies it to the baseline
+   checklist.
 
-Everything is snapshot-driven: the JSON snapshot captured from Azure is the single
-input for the evaluation, so the same evidence always yields the same statuses.
+Determinism is the goal: the same evidence + decisions always yield the same
+statuses.
 
-### What you get
+### Stage walkthrough
+
+| Stage | Folder | Reads | Writes |
+|---|---|---|---|
+| 01 collect | `01_collect\` (script) | live Azure subscription | `snapshot\azure_snapshot.json` |
+| 02 evaluate | `02_evaluate\` (AI) | snapshot, `rules\rules.md`, `_config\overrides.md` | `02_evaluate\output\evaluation.md` |
+| 03 review | `03_review\` (user gate) | evaluation.md | `03_review\output\decisions.md` + `_config\overrides.md` |
+| 04 map | `04_map\` (merge) | evaluation.md + decisions.md | `04_map\output\rules-mapping.json` |
+| 05 checklist | `05_checklist\` (script) | mapping + baseline checklist | `output\<app>_filled.cklb`, `output\review_report.md` |
+
+### What you get after a run
 
 | Output | Description |
 |---|---|
-| `output\<ChecklistName>_filled.cklb` | Checklist fillable in STIG Viewer 3 (BOM-less UTF-8) |
-| `output\review_report.md` | Status summary + rules needing human/AI review |
+| `output\<app>_filled.cklb` | Checklist fillable in STIG Viewer 3 (BOM-less UTF-8), `host_name` stamped with the app name |
+| `output\review_report.md` | Status summary + fix list of `open` items |
 | `output\azure_snapshot_<timestamp>.json` | The snapshot, archived after each run |
 
-After a successful run the snapshot is **moved** out of `snapshot\` so a stale
-capture can never be reused. Re-run `collect_azure.ps1` before the next run.
+After a successful stage-05 run the snapshot is **moved** out of `snapshot\`
+so stale evidence can never be reused; re-run `collect_azure.ps1` before any
+further run.
 
 ## Directory layout
 
 | Path | Purpose |
 |---|---|
-| `Database Checklist.cklb` | Source unfilled STIG checklist (Database SRG V4R6). **Never modified.** |
-| `SV3_CKLB_1_0_JSON_SCHEMA.json` | STIG Viewer 3 checklist JSON schema |
+| `_config\App Server.cklb` | Unfilled baseline checklist (Application Server SRG). **Never modified.** |
+| `_config\conventions.md` / `glossary.md` | Hard rules (BOM-less UTF-8, paths) and the legal status vocabulary |
+| `_config\overrides.md` | Organization-level decisions (supersede the decision tables) |
+| `rules\rules.md` | Evaluation guide: 8 key events + decision tables covering all 137 rules |
 | `scripts\collect_azure.ps1` | az CLI evidence collector → snapshot |
-| `scripts\run.ps1` | Evaluator: snapshot + rules map → filled checklist + review report |
-| `rules\rules-map.json` | Deterministic rule → check mappings |
-| `rules\rules.md` | Human notes on overrides (keep in sync with the map) |
-| `snapshot\azure_snapshot.json` | Evidence collected from Azure |
-| `output\` | All outputs (filled checklists and reports) |
+| `scripts\compose_checklist.ps1` | Applies `rules-mapping.json` to the baseline; no judgment |
+| `snapshot\azure_snapshot.json` | Evidence collected from Azure (consumed once) |
+| `output\` | Final deliverables |
+
+Stage contracts live in each `01_collect`–`05_checklist` folder's `CONTEXT.md`.
 
 ## Requirements
 
 - Windows PowerShell 5.1
 - [Azure CLI](https://aka.ms/azure-cli) (`az`) logged in (`az login`) and pointed
-  at the subscription containing the Cosmos DB account
-- A Cosmos DB account (SQL API)
+  at the subscription containing the app
+- A web app (`-Type webapp`) or function app (`-Type functionapp`)
 
 ## Quick start
 
 ```powershell
-# from the repo root
-.\scripts\collect_azure.ps1 -AccountName <cosmos-account> -ResourceGroup <rg> [-Subscription <sub>]
-.\scripts\run.ps1
+.\scripts\collect_azure.ps1 -AppName <webapp> -ResourceGroup <rg> [-Subscription <sub>]
+# stages 02–04: follow each stage folder's CONTEXT.md (the AI agent owns these)
+.\scripts\compose_checklist.ps1 -Checklist "_config\App Server.cklb"
 ```
 
 Then:
 
-1. Open the filled checklist (`output\Database Checklist_filled.cklb`) in
-   [STIG Viewer 3](https://public.cyber.mil/stigs/stig-viewing-tools/) or review
-   `output\review_report.md`.
-2. Resolve any `not_reviewed` rules (see below).
+1. Open the filled checklist (`output\<app>_filled.cklb`) in
+   [STIG Viewer 3](https://public.cyber.mil/stigs/stig-viewing-tools/), or read
+   `output\review_report.md` (open items are your fix list).
+2. For `not_reviewed` rules, the named gap in the comment tells you what
+   evidence or decision is missing.
 3. Repeat per assessment — each run consumes exactly one fresh snapshot.
 
-## Workflow with an AI agent (Claude Code, OpenCode, GitHub Copilot)
+## Workflow with an AI agent (OpenCode, Claude Code, Copilot agent mode)
 
-The pipeline is designed so an AI agent can own both maintenance and review:
-
-### Point the agent at the guide
-
-Give the agent the repo and tell it to read `AGENTS.md` / `CLAUDE.md` (same
-instructions, agent-specific filenames). It describes the layout, workflow,
-evaluation model, and conventions the agent must preserve. Example prompts:
-
-- Claude Code: just open the repo — it picks up `CLAUDE.md` automatically.
-- OpenCode: just open the repo — it reads `AGENT.md`/`AGENTS.md` automatically.
-- GitHub Copilot Chat (agent mode): open the workspace and mention `AGENT.md`.
+Point the agent at the workspace folder — it reads `AGENT.md`/`CLAUDE.md`
+automatically and routes through stages 01–05 per each `CONTEXT.md` contract.
 
 Useful prompts:
 
-- "Read AGENT.md, then run the assessment for account X / resource group Y."
-- "Read output\review_report.md and propose evidence-based statuses for the
-  not_reviewed rules using snapshot\azure_snapshot.json."
-- "Encode my decision for V-206559 (N-A, inherited by CSP) into rules-map.json
-  and rules.md, then re-run."
+- "Run the assessment for app X / resource group Y."
+- "Continue the pipeline."
+- "Why is V-204717 open?" (answer from `02_evaluate\output\evaluation.md`)
 
-### The review loop (human + AI)
+User interaction is deliberately limited to **stage 03**; org-level answers
+are recorded in `_config\overrides.md`, so future runs skip repeated
+questions.
 
-`scripts\run.ps1` leaves rules it cannot evidence confidently as `not_reviewed`:
+## Key events (what the evaluation reduces to)
 
-1. Agent reads `output\review_report.md` and proposes evidence-based statuses
-   (NAF / N-A / Open) for each `not_reviewed` rule — e.g. "Inherited by the
-   Cloud Service Provider" for platform-managed behavior, or an evidence check
-   against the snapshot.
-2. Human approves or edits the proposals.
-3. Agent encodes each decision:
-   - Fixed status → `static` entry + status in `rules\rules-map.json`, noted in
-     `rules\rules.md`.
-   - Conditional behavior → extend/add a `kind` in `scripts\run.ps1`.
-4. Re-run `scripts\run.ps1` — the decision is now repeatable and deterministic.
+| # | Key event | Snapshot evidence |
+|---|---|---|
+| K1 | Inbound locked to approved TLS | `httpsOnly`, `minTlsVersion`, `scmMinTlsVersion` |
+| K2 | FTP locked | `ftpsState` |
+| K3 | Dev endpoints closed | `remoteDebuggingEnabled` |
+| K4 | Audit pipeline to central logs | `diagnostic_settings[]` categories + `workspaceId` |
+| K5 | Network exposure restricted | IP restrictions / VNet integration / public access |
+| K6 | No app-managed credentials | managed identity / EasyAuth |
+| K7 | File + IP-limited audit on | `AppServiceFileAuditLogs`, `AppServiceIPSecAuditLogs` |
+| K8 | Managed platform facts | static `platform_facts` block emitted by the collector |
 
-### Evaluation model
-
-Rules in `rules\rules-map.json` carry a `kind` that drives the check:
-
-- `static` — fixed status + comment (overrides, PaaS architecture rules)
-- `local_auth` / `key_auth_dependent` — keyed on `disableLocalAuth`
-- `public_access` / `tls_version` / `encryption_at_rest` / `key_storage` —
-  account-level evidence checks
-- `audit_generated` / `audit_support` / `diagnostics_to_la` / `diag_dependent` /
-  `no_databases` / `access_control` — snapshot-driven checks
-
-Every status message cites the exact snapshot path/value used as evidence.
-Rules that can't be evaluated confidently stay `not_reviewed` for a human.
+Full decision tables are in `rules\rules.md`.
 
 ## Conventions preserved by the pipeline
 
-- `Database Checklist.cklb` is read-only input — outputs always go to `output\`.
-- Output JSON is BOM-less UTF-8 (STIG Viewer 3 rejects BOM'd files; the scripts
-  use `[IO.File]::WriteAllText` with `UTF8Encoding($false)`).
+- `_config\App Server.cklb` is read-only input — outputs always go to `output\`.
+- Output JSON is BOM-less UTF-8 (STIG Viewer 3 rejects BOM'd files; the
+  scripts use `[IO.File]::WriteAllText` with `UTF8Encoding($false)`).
 - Scripts work from any working directory (paths resolve from `$PSScriptRoot`).
 - Never fabricate settings absent from the snapshot — unknown rules stay
-  `not_reviewed` rather than guessed.
+  `not_reviewed` with the gap named.
+- No stage crosses workspace boundaries: `snapshot\`, `output\`, `_config\`
+  belong to this STIG only (see the root `README.md` for the sibling
+  `cosmos-stig\` workspace).
