@@ -11,7 +11,7 @@ same evidence always yields the same statuses.
 | Folder | STIG | Status |
 |---|---|---|
 | [`cosmos-stig\`](cosmos-stig) | Azure Cosmos DB (Database SRG V4R6, 142 rules) | Production |
-| [`appservice-stig\`](appservice-stig) | Azure App Service (App Server SRG, 137 rules) | Ready — scaffold complete, exercised end-to-end |
+| [`appservice-stig\`](appservice-stig) | Azure App Service (App Server SRG, 137 rules) | Production |
 
 Both workspaces follow the identical 5-stage ICM pipeline below and never
 share run artifacts (`output\`, `snapshot\`, `_config\` are private to each).
