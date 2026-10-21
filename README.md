@@ -11,7 +11,10 @@ same evidence always yields the same statuses.
 | Folder | STIG | Status |
 |---|---|---|
 | [`cosmos-stig\`](cosmos-stig) | Azure Cosmos DB (Database SRG V4R6, 142 rules) | Production |
-| [`appservice-stig\`](appservice-stig) | Azure App Service | Scaffold (TODO: baseline checklist, rules.md, collector) |
+| [`appservice-stig\`](appservice-stig) | Azure App Service (App Server SRG, 137 rules) | Ready — scaffold complete, exercised end-to-end |
+
+Both workspaces follow the identical 5-stage ICM pipeline below and never
+share run artifacts (`output\`, `snapshot\`, `_config\` are private to each).
 
 ## How a workspace is structured
 
@@ -47,6 +50,8 @@ Open the repo root; the agent auto-reads `AGENT.md`/`CLAUDE.md`, picks the
 workspace, and walks the pipeline stage by stage:
 
 - "Run the assessment pipeline for account X / resource group Y."
+  (`cosmos-stig` targets a Cosmos DB account; `appservice-stig` targets an
+  App Service web/function app.)
 - "Continue the pipeline." (routing follows the workspace's `CONTEXT.md`)
 - "Why is V-206553 open?" (explain from `02_evaluate\output\evaluation.md`)
 
@@ -56,11 +61,20 @@ and reflected in the final checklist.
 
 ### Manual (PowerShell only)
 
+Each workspace ships its own stage-01 collector; the other scripts are
+stage-agnostic:
+
 ```powershell
-cd <stig-workspace>
+# Cosmos DB (Database SRG)
+cd cosmos-stig
 .\scripts\collect_azure.ps1 -AccountName <account> -ResourceGroup <rg> [-Subscription <sub>]
+
+# App Service (App Server SRG)
+cd appservice-stig
+.\scripts\collect_azure.ps1 -AppName <app> -ResourceGroup <rg> [-Subscription <sub>] [-Type webapp|functionapp]
+
 # stages 02–04: follow each stage folder's CONTEXT.md contract by hand
-.\scripts\compose_checklist.ps1
+.\scripts\compose_checklist.ps1 -Checklist "_config\<stig> Checklist.cklb"
 ```
 
 Artifacts: `output\<resource>_filled.cklb` (open in
@@ -86,8 +100,8 @@ Artifacts: `output\<resource>_filled.cklb` (open in
 
 1. Clone a production workspace folder into `<name>-stig\`.
 2. Delete run artifacts (`output\`, `snapshot\`, stage `output\` subfolders).
-3. Replace the STIG-specific pieces (see `appservice-stig\` for the expected
-   TODOs):
+3. Replace the STIG-specific pieces (see `cosmos-stig\` and
+   `appservice-stig\` for two completed examples):
    - `_config\<stig> Checklist.cklb` — unfilled baseline (read-only)
    - `rules\rules.md` — key events + decision tables distilled from the
      checklist's `check_content`
@@ -104,4 +118,4 @@ STIG-agnostic and stay as-is.
 - [Azure CLI](https://aka.ms/azure-cli) (`az`) logged in, pointed at the
   subscription containing the target resource
 - A target resource matching the workspace's STIG (e.g. SQL API Cosmos DB
-  account for `cosmos-stig`)
+  account for `cosmos-stig`, web/function app for `appservice-stig`)
