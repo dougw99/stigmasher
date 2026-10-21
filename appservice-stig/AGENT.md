@@ -13,15 +13,15 @@ _config/                   Layer 3 — persistent rules
   conventions.md             hard project rules (encoding, paths, evidence)
   glossary.md                status vocabulary + checklist fields
   overrides.md               organization decisions (user-owned)
-  (TODO: baseline .cklb)     unfilled App Service STIG checklist — READ-ONLY
-rules/rules.md             Layer 2 — evaluation knowledge (TODO: build)
+  App Server.cklb            unfilled App Service STIG checklist — READ-ONLY
+rules/rules.md             Layer 2 — evaluation knowledge (done)
   key events + decision tables; superseded by _config/overrides.md
-01_collect/  → snapshot\azure_snapshot.json           (script TODO)
+01_collect/  → snapshot\azure_snapshot.json           (script ready)
 02_evaluate/ → output\evaluation.md                   (AI judgment against tables)
 03_review/   → output\decisions.md                    (user gate; batches questions)
 04_map/      → output\rules-mapping.json              (merge bookkeeping)
 05_checklist/→ output\<resource>_filled.cklb + review_report.md (script-driven)
-scripts/     collect_azure.ps1 (TODO) · compose_checklist.ps1 (generic, ready)
+scripts/     collect_azure.ps1 (ready) · compose_checklist.ps1 (generic, ready)
 output/                    final deliverables only
 ```
 
@@ -47,9 +47,9 @@ asked outside stage 03, the contract was violated.
 - Never fabricate evidence; missing setting = `not_reviewed` + the gap named.
 - Scripts work from any CWD (paths resolve from `$PSScriptRoot`).
 
-## Scaffold status (before first real use)
+## Scaffold status
 
-1. Put the unfilled App Service STIG checklist into `_config\` (read-only).
-2. Distill `rules\rules.md`: key events from the checklist's check_content,
-   then decision tables per evidence area (pattern: cosmos-stig\rules\rules.md).
-3. Implement `scripts\collect_azure.ps1` evidence collection for those key events.
+1. [x] Unfilled App Service STIG checklist in `_config\App Server.cklb`.
+2. [x] `rules\rules.md` distilled (8 key events + tables; 137/137 rules covered).
+3. [x] `scripts\collect_azure.ps1` implemented (snapshot contract in rules.md).
+4. Remaining: exercise stages 01-05 end-to-end on a real App Service resource.

@@ -51,10 +51,12 @@ function NormalizeId { param($id) ($id -replace '^V-', '') }
 # Load one input early to name outputs/target fields after the assessed resource.
 $resourceName = $null
 if (Test-Path -LiteralPath $Snapshot) {
-  $snapData = Get-Content -LiteralPath $Snapshot -Raw | ConvertFrom-Json
+  $snapData = Get-Content -LiteralPath $Snapshot -Raw -Encoding UTF8 | ConvertFrom-Json
   if ($snapData.account -and $snapData.account.name) {
     $resourceName = [string]$snapData.account.name
-} else {
+  } elseif ($snapData.site -and $snapData.site.id) {
+    $resourceName = ($snapData.site.id -split '/')[-1]
+  } else {
     $resourceName = $null
   }
 }
@@ -65,9 +67,9 @@ if (-not $OutChecklist) {
 }
 
 # ---------------------------------------------------------- load
-$cklb    = Get-Content -LiteralPath $Checklist -Raw | ConvertFrom-Json
+$cklb    = Get-Content -LiteralPath $Checklist -Raw -Encoding UTF8 | ConvertFrom-Json
 $mappingPath = $mappingData
-$mappingData = Get-Content -LiteralPath $mappingData -Raw | ConvertFrom-Json
+$mappingData = Get-Content -LiteralPath $mappingData -Raw -Encoding UTF8 | ConvertFrom-Json
 
 $validStatuses = @('not_a_finding', 'open', 'not_applicable', 'not_reviewed')
 foreach ($m in $mappingData.rules) {
@@ -123,12 +125,13 @@ Write-Host "Checklist written: $OutChecklist"
 $snapInfo = "n/a"
 $snapMeta = $null
 if (Test-Path -LiteralPath $Snapshot) {
-  try { $snapMeta = Get-Content -LiteralPath $Snapshot -Raw | ConvertFrom-Json } catch { }
+  try { $snapMeta = Get-Content -LiteralPath $Snapshot -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
 }
 if ($snapMeta) { $snapInfo = "$($snapMeta.resource_id) (collected $($snapMeta.collected_utc))" }
 
 $lines = @()
-$lines += "# Cosmos DB STIG Assessment - Review Report"
+$reportTitle = if ($cklb.PSObject.Properties['title'] -and $cklb.title) { $cklb.title } else { 'STIG' }
+$lines += "# $reportTitle Assessment - Review Report"
 $lines += ""
 $lines += "- Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 $lines += "- Resource:  $(if ($resourceName) { $resourceName } else { 'unknown (no snapshot)' })"

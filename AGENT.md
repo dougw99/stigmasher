@@ -8,7 +8,7 @@ This root is a router only — it holds no pipeline logic.
 | Folder | STIG | Status |
 |---|---|---|
 | `cosmos-stig\` | Azure Cosmos DB (Database SRG V4R6, 142 rules) | production — see `cosmos-stig\AGENT.md` |
-| `appservice-stig\` | Azure App Service | scaffold — rules.md, baseline checklist and collector still TODO |
+| `appservice-stig\` | Azure App Service (App Server SRG, 137 rules) | scaffold+ — baseline cklb, rules.md and collector ready; end-to-end run TODO |
 
 ## Routine
 
