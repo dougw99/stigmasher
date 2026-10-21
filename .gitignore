@@ -1,0 +1,20 @@
+# .gitignore — root
+
+# Per-run artifacts are transient and never versioned at any level
+snapshot/
+output/
+**/snapshot/
+**/output/
+**/0*_collect/output/
+**/0*_evaluate/output/
+**/0*_review/output/
+**/0*_map/output/
+**/0*_checklist/output/
+
+# Optional per-run history folders
+**/_runs/
+
+# Local junk
+~$*
+Thumbs.db
+*.swp

@@ -45,7 +45,10 @@ function Invoke-AzJson {
     throw "az command failed: az $($AzArgs -join ' ')"
   }
   if (-not $raw -or $raw.Count -eq 0) { return @() }
-  return $raw | ConvertFrom-Json -ErrorAction Stop
+  $obj = $raw | ConvertFrom-Json -ErrorAction Stop
+  # az list commands wrap results in { "value": [...] }; unwrap for consumers
+  if ($obj -and $obj.PSObject.Properties['value']) { return @($obj.value) }
+  return $obj
 }
 
 Assert-Az
@@ -75,11 +78,11 @@ $snapshot = [ordered]@{
   subscription         = "$(& az account show --query id -o tsv)".Trim()
   resource_id          = $resourceId
   account              = $account
-  diagnostic_settings  = $dsm
-  sql_role_definitions = $sqlRoleDefs
-  sql_role_assignments = $sqlRoleAsgns
-  sql_databases        = $sqlDatabases
-  private_endpoints    = $privateEndpoints
+  diagnostic_settings  = @($dsm | Where-Object { $_ })
+  sql_role_definitions = @($sqlRoleDefs | Where-Object { $_ })
+  sql_role_assignments = @($sqlRoleAsgns | Where-Object { $_ })
+  sql_databases        = @($sqlDatabases | Where-Object { $_ })
+  private_endpoints    = @($privateEndpoints | Where-Object { $_ })
 }
 
 $outDir = Split-Path $OutputFile -Parent

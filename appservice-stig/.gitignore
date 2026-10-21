@@ -1,0 +1,18 @@
+# Per-run artifacts: evidence snapshots and assessment outputs.
+# Source/config (stage CONTEXT.md contracts, _config\, rules\, scripts\) are
+# versioned; anything produced by a run of the pipeline is not.
+snapshot/
+output/
+01_collect/output/
+02_evaluate/output/
+03_review/output/
+04_map/output/
+05_checklist/output/
+
+# Optional per-run history folder
+_runs/
+
+# Local junk
+~$*
+Thumbs.db
+*.swp
