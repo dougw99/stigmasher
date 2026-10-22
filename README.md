@@ -119,3 +119,9 @@ STIG-agnostic and stay as-is.
   subscription containing the target resource
 - A target resource matching the workspace's STIG (e.g. SQL API Cosmos DB
   account for `cosmos-stig`, web/function app for `appservice-stig`)
+
+## Token Usage
+- One STIG checklist takes about `1.25M tokens` to complete
+- Using `gpt-6-luna` model, this equates to about `3 cents`
+
+![Token breakdown cost](cost.png)
