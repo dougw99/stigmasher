@@ -20,6 +20,9 @@ Hard, non-negotiable project rules. Loaded by every stage.
   written string) before declaring success.
 
 ## Scripts
+- **Never create new script files.** The only scripts are
+  `scripts\collect_azure.ps1` and `scripts\compose_checklist.ps1`; stages
+  02–04 are performed directly by the AI per their `CONTEXT.md`.
 - `scripts\*.ps1` must work from any working directory: resolve paths from
   `$PSScriptRoot`.
 - Scripts are mechanical: collect evidence, apply a mapping, format files.

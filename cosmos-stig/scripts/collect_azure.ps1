@@ -4,7 +4,7 @@
   Collects Cosmos DB configuration evidence from Azure via az CLI into a JSON snapshot.
 .DESCRIPTION
   Runs repeatable, secret-free evidence collection. The snapshot is the single
-  input for run.ps1, making assessments repeatable and auditable.
+  input for the evaluation stages, making assessments repeatable and auditable.
 .PARAMETER AccountName
   Cosmos DB account name.
 .PARAMETER ResourceGroup

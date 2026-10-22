@@ -2,9 +2,7 @@
 
 ## Purpose
 Interpret the evidence snapshot against the STIG rule knowledge and produce a
-plain-text first-pass evaluation. This is the stage that replaces the old
-hardcoded `kind` resolvers in `run.ps1` — judgment lives here, in the AI, guided
-by markdown.
+plain-text first-pass evaluation. Judgment lives here, in the AI, guided by markdown.
 
 ## Role
 Auditor. Evidence-driven, conservative. You evaluate; you do not invent

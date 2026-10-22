@@ -38,8 +38,7 @@ A user answer applies to every rule in the batch.
 ## Recording rules
 - Every decision goes into the table with the user's actual words for reason.
 - If the user gives an organization-level rule ("we always inherit X for
-  PaaS"), ALSO append it to `_config/overrides.md` so future runs skip the
-  question.
+  PaaS")
 - If the user cannot decide, the rule stays `not_reviewed` — record that
   explicitly, do not silently pick a status.
 
